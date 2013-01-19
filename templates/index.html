@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html height:>
+<html>
   <head>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
     <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
@@ -12,15 +12,36 @@
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAnbKbgharhiAidEImaBFCRSKMXyScxRNE&sensor=false">
     </script>
     <script type="text/javascript">
+      
+
+      function addMarker(lat, lng, map){
+        var latlng = new google.maps.LatLng(lat,lng);
+        var marker = new google.maps.Marker({
+            position: latlng,
+            map: map
+        });
+        var infowindow = new google.maps.InfoWindow({
+          content: "<h2>Artist</h2><h3>Venue</h3>"
+        });
+        google.maps.event.addListener(marker, 'click', function() {
+          infowindow.open(map,marker);
+        });
+      };
+
       function initialize() {
         var mapOptions = {
-          center: new google.maps.LatLng(39.952073, -75.191267),
-          zoom: 8,
+          center: new google.maps.LatLng(39.951673, -75.191287),
+          zoom: 10,
           mapTypeId: google.maps.MapTypeId.ROADMAP
         };
         var map = new google.maps.Map(document.getElementById("map_canvas"),
             mapOptions);
-      }
+        addMarker(39.951673, -75.191287, map);
+        addMarker(39.851673, -75.241287, map);
+      };
+
+      
+      
     </script>
   </head>
   <body onload="initialize()">
