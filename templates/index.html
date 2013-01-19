@@ -13,15 +13,14 @@
     </script>
     <script type="text/javascript">
       
-
-      function addMarker(lat, lng, map){
+      function addMarker(lat, lng, map, concert){
         var latlng = new google.maps.LatLng(lat,lng);
         var marker = new google.maps.Marker({
             position: latlng,
             map: map
         });
         var infowindow = new google.maps.InfoWindow({
-          content: "<h2>Artist</h2><h3>Venue</h3>"
+          content: "<h2>{concert['artist']}</h2><h3>{concert['venue']}</h3>"
         });
         google.maps.event.addListener(marker, 'click', function() {
           infowindow.open(map,marker);
@@ -36,8 +35,13 @@
         };
         var map = new google.maps.Map(document.getElementById("map_canvas"),
             mapOptions);
-        addMarker(39.951673, -75.191287, map);
-        addMarker(39.851673, -75.241287, map);
+
+        addMarker(39.951673, -75.191287, map, 'blah');
+        addMarker(39.851673, -75.241287, map, 'blah');
+
+        // {% for concert in concerts %}
+        //   addMarker({concert['lat']}, {concert['long']}, map, concert);
+        // {% endfor %}
       };
 
       
@@ -46,20 +50,20 @@
   </head>
   <body onload="initialize()">
     <script src="js/bootstrap.min.js"></script>
-      <div class="row-fluid">
-        <div class="span9">
-          <div id="map_canvas" style="width:100%; height:40em"></div> 
-        </div>
-        <div class="span3">
-          <form>
+      <div id="map_canvas" style="width:100%; height:100% "></div> 
+        <div class="row-fluid">
+        <div class="span3" style="position:absolute; top:40px; right: 40px; background-color:white">
+          <div class="hero-unit .box-shadow" style="background-color:white;">
+          <form style="position:absolute; top:3px; left:5px">
             <fieldset>
               <legend>JamFinder</legend>
               <label>Location</label>
-              <input type="text" placeholder="Philadelphia, PA">
+              <input type="text" placeholder="Philadelphia, PA"><br>
               <button type="submit" class="btn">Submit</button>
             </fieldset>
           </form>
         </div>
+      </div>
       </div>
   </body>
 </html>
