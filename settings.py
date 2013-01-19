@@ -8,9 +8,8 @@ GOOGLE_MAPS_API_URL = "http://maps.google.com/maps/geo?key=" + GOOGLE_MAPS_API_K
 API_RETRIES = 10
 SOUNDCLOUD_API_URL = "http://api.soundcloud.com"
 SOUNDCLOUD_TIMEZONE_ADJUSTMENT = 0 # in hours behind server timezone
-SOUNDCLOUD_CONSUMER_KEY = SOUNDCLOUD_CLIENT_ID
+SOUNDCLOUD_CONSUMER_KEY =
 DURATION_LIMIT = "1200000" # in milliseconds to filter out dj-sets + podcasts
-
 
 # Frontend
 FRONTEND_LOCATIONS_LIMIT = 200 # How many locations shall be displayed as default in FrontEnd?

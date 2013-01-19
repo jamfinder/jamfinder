@@ -7,7 +7,7 @@ azure==0.6
 fudge==1.0.3
 paramiko==1.9.0
 pycrypto==2.6
-requests==1.1.0
+requests==0.14.2
 simplejson==3.0.7
 soundcloud==0.3.5
 wsgiref==0.1.2
