@@ -27,8 +27,14 @@
 
     <script type="text/javascript">
 
+      var track = '2F74928577'
+
       var info = '<h2>{concert[\'artist\']}</h2><h3>{concert[\'venue\']}</h3>'
-      var player = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=http%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F74928577"></iframe>'
+      var player = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=http%3A%2F%2Fapi.soundcloud.com%2Ftracks%'+ track + '"></iframe>'
+
+      var infowindow = new google.maps.InfoWindow({
+          content: ""
+      });
       
       function addMarker(lat, lng, map, concert){
         var latlng = new google.maps.LatLng(lat,lng);
@@ -37,12 +43,8 @@
             map: map
         });
 
-        var infowindow = new google.maps.InfoWindow({
-          content: info + player
-        });
-
-
         google.maps.event.addListener(marker, 'click', function() {
+          infowindow.setContent(info + player);
           infowindow.open(map,marker);
         });
       };
@@ -74,10 +76,6 @@
         geocoder.geocode( { 'address': address}, function(results, status) {
           if (status == google.maps.GeocoderStatus.OK) {
             map.setCenter(results[0].geometry.location);
-            // var marker = new google.maps.Marker({
-            //     map: map,
-            //     position: results[0].geometry.location
-            // });
           } else {
             alert('Geocode was not successful for the following reason: ' + status);
           }
@@ -92,7 +90,7 @@
         <div class="row-fluid">
         <div class="span3" style="position:absolute; top:40px; right: 40px;">
           <div class="sidefloat" style="height:12em;">
-          <form action="" method="get" style="position:absolute; top:3px; left:5px">
+          <form action="" method="get" style="position:absolute; top:4px; left:10px">
             <fieldset>
               <legend>JamFinder</legend>
               <label>Location</label>
@@ -109,7 +107,13 @@
                 var input = document.getElementById('btn-input');
                 for(var i = 0; i < btns.length; i++) {
                   document.getElementById(btns[i]).addEventListener('click', function() {
+                    for (var j=0; j<btns.length; j++) {
+                      if (j!==i) {
+                        document.getElementById(btns[j]).className="btn";
+                      }
+                    }
                     input.value = this.value;
+                    this.className="btn active";
                   });
                 }
               </script>
