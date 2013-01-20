@@ -1,5 +1,5 @@
-from application import create_app
-app = create_app(__name__)
+from application import app
+
 if app.config['DEBUG']:
     app.debug = True
 

@@ -1,35 +1,15 @@
-*.py[cod]
+local_settings.py
+**.bak
+**.pyc
+**.swp
+.Python
+bin/
+include/
+lib/
+src/
+.enter.tcsh
+.enter.local.tcsh
 
-# C extensions
-*.so
-
-# Packages
-*.egg
-*.egg-info
-dist
-build
-eggs
-parts
-bin
-var
-sdist
-develop-eggs
-.installed.cfg
-lib
-lib64
-
-# Installer logs
-pip-log.txt
-
-# Unit test / coverage reports
-.coverage
-.tox
-nosetests.xml
-
-# Translations
-*.mo
-
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
+# Don't loose ssl.key and ssl.cert... don't add them either.
+#ssl.cert
+#ssl.key

@@ -25,12 +25,6 @@ MODULES = [
     {'name': 'mod3', 'url_prefix': '/mod3'  },
 ]
 
-app = Flask(__name__)
-from app import views
-
-if __name__ == '__main__':
-    app.run()
-
 # Create the Skeleton app
 def create_app(name = __name__):
     app = Flask(__name__, static_path='/static')
@@ -54,6 +48,7 @@ def create_app(name = __name__):
         cookie_name='b', cookie_path='/',
         cookie_domain=None, cookie_lifetime=86400 * 365 * 10,
         cookie_secure=None, vary=())
+
     return app
 
 
