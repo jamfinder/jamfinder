@@ -7,12 +7,28 @@
       html { height: 100% }
       body { height: 100%; margin: 0; padding: 0 }
       #map_canvas { height: 100% }
+      .sidefloat {
+        max-width: 300px;
+        padding: 19px 29px 29px;
+        margin: 0 auto 20px;
+        background-color: #fff;
+        border: 1px solid #e5e5e5;
+        -webkit-border-radius: 5px;
+           -moz-border-radius: 5px;
+                border-radius: 5px;
+        -webkit-box-shadow: 0 1px 2px rgba(0,0,0,.05);
+           -moz-box-shadow: 0 1px 2px rgba(0,0,0,.05);
+                box-shadow: 0 1px 2px rgba(0,0,0,.05);
+      }
     </style>
     <script type="text/javascript"
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAnbKbgharhiAidEImaBFCRSKMXyScxRNE&sensor=false">
     </script>
 
     <script type="text/javascript">
+
+      var info = '<h2>{concert[\'artist\']}</h2><h3>{concert[\'venue\']}</h3>'
+      var player = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=http%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F74928577"></iframe>'
       
       function addMarker(lat, lng, map, concert){
         var latlng = new google.maps.LatLng(lat,lng);
@@ -20,9 +36,12 @@
             position: latlng,
             map: map
         });
+
         var infowindow = new google.maps.InfoWindow({
-          content: "<h2>{concert['artist']}</h2><h3>{concert['venue']}</h3><h4>soundcloud player</h4>"
+          content: info + player
         });
+
+
         google.maps.event.addListener(marker, 'click', function() {
           infowindow.open(map,marker);
         });
@@ -71,14 +90,31 @@
     <script src="js/bootstrap.min.js"></script>
       <div id="map_canvas" style="width:100%; height:100% "></div> 
         <div class="row-fluid">
-        <div class="span3" style="position:absolute; top:40px; right: 40px; background-color:white; outline:gray solid 1px;">
-          <div class="hero-unit .box-shadow" style="background-color:white; ">
+        <div class="span3" style="position:absolute; top:40px; right: 40px;">
+          <div class="sidefloat" style="height:12em;">
           <form action="" method="get" style="position:absolute; top:3px; left:5px">
             <fieldset>
               <legend>JamFinder</legend>
               <label>Location</label>
               <input type="text" id="address" placeholder="Philadelphia, PA"><br>
-              <input type="submit" value="Submit" onclick="codeAddress()" class="btn">
+              <label>Radius (miles)</label>
+              <input type="hidden" name="radius" value="" id="btn-input" />
+              <div class="btn-group" data-toggle="buttons-radio" style="padding:0px 0px 10px 0px">
+                <button id="btn-one" class="btn" type="button" data-toggle="button" name="radius" value="2">2</button>
+                <button id="btn-two" class="btn" type="button" data-toggle="button" name="radius" value="10">10</button>
+                <button id="btn-thr" class="btn" type="button" data-toggle="button" name="radius" value="50">50</button>
+              </div>
+              <script>
+                var btns = ['btn-one', 'btn-two', 'btn-thr'];
+                var input = document.getElementById('btn-input');
+                for(var i = 0; i < btns.length; i++) {
+                  document.getElementById(btns[i]).addEventListener('click', function() {
+                    input.value = this.value;
+                  });
+                }
+              </script>
+              <br>
+              <button type="submit" value="Submit" onclick="codeAddress()" class="btn">Submit</button>
             </fieldset>
           </form>
         </div>
