@@ -16,13 +16,17 @@ def index():
                            concerts = Markup(concerts))
 
 # class UpdateView(View):
-#     def get_context(self, slug):
+#     if request.form['location']:
+
+
+
+#    def get_context(self, slug):
 #         post = Post.objects.get_or_404(slug=slug)
 
 #     def get(self, slug):
 #         post =
 
-# @app.route("/update", methods = ['POST'])
+        # @app.route("/update", methods = ['POST'])
 
 def update():
     return redirect('/')

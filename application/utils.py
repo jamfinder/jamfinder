@@ -199,8 +199,8 @@ def get_latlng(address):
   loc = response[unicode('results')][0][unicode('geometry')][unicode('location')]
   return (loc[unicode('lat')], loc[unicode('lng')])
 
-def get_concert_songs(zipcode, radius=50, start_date = datetime.date.today(),
-                      end_date = None, num_result = 10):
+def get_concert_songs(zipcode, radius=100, start_date = datetime.date.today(),
+                      end_date = None, num_result = 40):
   client = soundcloud.Client(client_id=settings.SOUNDCLOUD_CONSUMER_KEY)
   concerts = fetch_concert_info(zipcode, radius, start_date, end_date, num_result)
   print "#concerts ", len(concerts)
@@ -240,4 +240,4 @@ if __name__=="__main__":
   # client = soundcloud.Client(client_id=settings.SOUNDCLOUD_CONSUMER_KEY)
   # print get_users(client, '')
   # print get_location('3900 chestnut street philadelphia')
-  print get_concert_songs(19104)
+  print get_concert_songs(10004)
