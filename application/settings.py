@@ -15,6 +15,7 @@ JAMBASE_API_KEY = settings_private.JAMBASE_API_KEY
 JAMBASE_API_URL = 'http://api.jambase.com/search?apikey=%s&' % JAMBASE_API_KEY
 JAMBASE_ARTIST_URL = 'http://www.jambase.com/Artists/Artist.aspx?'
 JAMBASE_EVENT_URL = 'http://www.jambase.com/shows/event.aspx?'
+MAX_SONG_NUM = 16
 
 # Frontend
 FRONTEND_LOCATIONS_LIMIT = 200 # How many locations shall be displayed as default in FrontEnd?

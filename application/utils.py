@@ -11,17 +11,18 @@ import cgi
 from flask import json
 from bs4 import BeautifulSoup
 import jsonpickle
+import operator
+from fuzzywuzzy import fuzz
 
 class Venue:
-  def __init__(self, name, address, city, state, zipcode):
+  def __init__(self, name, lat, lng, zipcode):
     self.name = name
-    self.city = city
+    self.lat = lat
+    self.lng = lng
     self.zipcode = zipcode
-    self.address = address
-    self.state = state
 
   def __repr__(self):
-    return "[venue: %s %s %s %s]" %(self.name, self.city, self.zipcode, self.state)
+    return "[venue: %s %s %s %s]" %(self.name, self.lat, self.lng, self.zipcode)
 
 class Event:
   def __init__(self, event_id, artists, event_date, venue, event_url):
@@ -44,7 +45,7 @@ class Artist:
     return "[Artist: %s %s %s]" % (self.artist_id, self.name, self.url)
 
 class Track:
-  def __init__(self, id, user_id, purchase_url, artwork_url, genre):
+  def __init__(self, track_id, user_id, purchase_url, artwork_url, genre):
     self.track_id = track_id
     self.user_id = user_id
     self.purchase_url = purchase_url
@@ -65,15 +66,16 @@ def parse_xml_response(content):
     artists = []
     for artist in event('artists'):
       artist_id = artist.find('artist_id').text
-      artists.append(Artist(artist_id, artist.find('artist_name').text,
-                            get_official_website(artist_id)))
+      artists.append(Artist(artist_id, artist.find('artist_name').text, None))
+                            #get_official_website(artist_id)))
     venue = event.find('venue')
     venue_name = venue.find('venue_name').text
     venue_city = venue.find('venue_city').text
     venue_state = venue.find('venue_state').text
     venue_zip = venue.find('venue_zip').text
     venue_address = get_address(event.find('event_id').text)
-    venue_obj = Venue(venue_name, venue_address, venue_city, venue_state, venue_zip)
+    (lat, lng) = get_latlng(venue_address)
+    venue_obj = Venue(venue_name, lat, lng, venue_zip)
     events.append(Event(event.find('event_id').text,
                         artists, event.find('event_date').text,
                           venue_obj, event.find('event_url').text))
@@ -131,7 +133,8 @@ def get_official_website(jambase_artist_id):
   url = settings.JAMBASE_ARTIST_URL + 'ArtistID=%s' %jambase_artist_id
   result = get_soup(url).find_all("a", text='Official Website')
   if len(result) > 0 :
-    return canonical_url(result[0]['href']).strip('http://').strip('https://')
+    print result[0]['href']
+    return canonical_url(result[0]['href'])
   else:
     return None
 
@@ -144,18 +147,17 @@ def get_address(jambase_event_id):
   return address
 
 def get_soundcloud_id(client, artist):
-  artists = client.get('/users', q=name)
+  artists = client.get('/users', q=artist.name)
+  print artist.name, len(artists)
   if len(artists) == 0:
     return None
-    exact_artist = filter(lambda x: x.full_name == artist.name, artists)
-    if len(exact_artist)  == 0:
-      if artist.url:
-        exact_artist = filter(lambda x: canonical_url(x.website
-                                                    ).strip('http://').strip('https://')
-                              == artist.url, artists)
-        if len(exact_artist) == 0:
-          exact_artist = max(artists, key = int(attrgetter('track_count')))
-    return exact_artist.id
+  artist_fuzzs = [(x, fuzz.token_set_ratio(artist.name,
+                                               x.username)) for x in artists]
+  max_artist = max(artist_fuzzs, key = operator.itemgetter(1))
+  if max_artist[1] > 85:
+    return max_artist[0].id
+  else:
+    return None
 
 def fetch_concert_info(zipcode, radius, start_date,
                        end_date, num_result):
@@ -171,9 +173,23 @@ def fetch_concert_info(zipcode, radius, start_date,
 def get_artist_songs(client, artist_id):
   artist_tracks = []
   tracks = client.get('/users/%s/tracks' % artist_id)
+  i = 0
   for track in tracks:
-    artist_tracks.append(Track(track.id, track.purchase_url, track.artwork_url,
-                               track.genre))
+    if i == settings.MAX_SONG_NUM:
+      break
+    artist_tracks.append(Track(track.id, track.user_id, track.purchase_url,
+                               track.artwork_url, track.genre))
+  return artist_tracks
+
+def get_songs(client, artist):
+  artist_tracks = []
+  tracks = client.get('/tracks', q=artist.name, order='hotness')
+  i = 0
+  for track in tracks:
+    if i == settings.MAX_SONG_NUM:
+      break
+    artist_tracks.append(Track(track.id, track.user_id, track.purchase_url,
+                               track.artwork_url, track.genre))
   return artist_tracks
 
 def get_latlng(address):
@@ -187,13 +203,19 @@ def get_concert_songs(zipcode, radius=50, start_date = datetime.date.today(),
                       end_date = None, num_result = 10):
   client = soundcloud.Client(client_id=settings.SOUNDCLOUD_CONSUMER_KEY)
   concerts = fetch_concert_info(zipcode, radius, start_date, end_date, num_result)
+  print "#concerts ", len(concerts)
+  concert_results = []
   for concert in concerts:
     songs = []
     for artist in concert.artists:
       soundcloud_id = get_soundcloud_id(client, artist)
-      songs.extend(get_artist_songs(soundcloud_id))
-    (lat, lng) = get_latlng(concert.address)
-
+      if not soundcloud_id:
+        songs.extend(get_songs(client, artist))
+      else:
+        songs.extend(get_artist_songs(client, soundcloud_id))
+    concert.songs = songs
+  len(concerts)
+  return jsonpickle.encode(concerts)
 
 genres = {}
 genres.update({'house': ['house', 'tech house', 'deep house', 'progressive house', 'tech-house',
@@ -212,7 +234,9 @@ genres.update({'ambient': ['ambient']})
 genres.update({'jazz': ['jazz', 'free jazz', 'nu-jazz', 'nu jazz', 'swing']})
 genres.update({'classical': ['classical', 'classic']})
 
+if __name__=="__main__":
   # print fetch_concert_info(19104)
   # client = soundcloud.Client(client_id=settings.SOUNDCLOUD_CONSUMER_KEY)
   # print get_users(client, '')
   # print get_location('3900 chestnut street philadelphia')
+  print get_concert_songs(19104)
