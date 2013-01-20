@@ -17,7 +17,4 @@ MODULES = [
 
 # Create the Skeleton app
 app = Flask(__name__, static_path='/static')
-app.config.from_object('config')
-db = SQLAlchemy(app)
-
-from application import views, models
+from application import views#, models
