@@ -1,6 +1,7 @@
 from application import app
 from flask.views import View
 from utils import get_concert_songs
+from flask import Blueprint, request, redirect, render_template, url_for
 
 zipcode = 19104
 
@@ -15,7 +16,9 @@ def index():
     path = os.path.join(os.path.dirname(__file__), 'templates/index.html')
     self.response.out.write(template.render(path, template_values))
 
+class UpdateView(View):
+    post =
+
 @app.route("/update", methods = ['POST'])
 def update():
-
     return redirect('/')
