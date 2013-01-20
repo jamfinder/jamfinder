@@ -134,7 +134,32 @@
             alert('Geocode was not successful for the following reason: ' + status);
           }
         });
-      }
+      };
+
+      function post_to_url(path, params, method) {
+          method = method || "post"; // Set method to post by default, if not specified.
+
+          // The rest of this code assumes you are not using a library.
+          // It can be made less wordy if you use one.
+          var form = document.createElement("form");
+          form.setAttribute("method", method);
+          form.setAttribute("action", path);
+
+          for(var key in params) {
+              if(params.hasOwnProperty(key)) {
+                  var hiddenField = document.createElement("input");
+                  hiddenField.setAttribute("type", "hidden");
+                  hiddenField.setAttribute("name", key);
+                  hiddenField.setAttribute("value", params[key]);
+
+                  form.appendChild(hiddenField);
+               }
+          }
+
+          document.body.appendChild(form);
+          form.submit();
+      }                
+
 
     </script>
   </head>
@@ -147,13 +172,14 @@
     </div>
       <div id="map_canvas" style="width:100%; height:100% "></div> 
         <div class="sidebox" style="position:absolute; bottom:60px; right: 55px; width: 240px;">
-          <div class="sidefloat" style="height:174px;">
-          <form action="" method="get" style="position:absolute; top:4px; left:10px">
+          <div class="sidefloat" style="height:138px;">
+          <form class="form-search" action="" method="get" style="position:absolute; top:4px; left:10px">
             <fieldset>
               <legend style="padding:0;margin:0;"><strong>Beets</strong>/JamFinder</legend>
-              <label style="padding:4px 0 0 0;">Location</label>
-              <input type="text" id="address" placeholder="Philadelphia, PA"><br>
-              <label>Radius (miles)</label>
+              <label style="padding:4px 0 0 0;">Location</label><br>
+              <input type="text" class="input-medium search-query" id="address" placeholder="Philadelphia, PA" style="width:130px">
+              <button type="submit" class="btn" onclick="codeAddress();">Go</button> 
+              <label style="padding: 10px 0 0 0">Radius (miles)</label><br>
               <input type="hidden" name="radius" value="" id="btn-input" />
               <div class="btn-group" data-toggle="buttons-radio" style="padding:0px 0px 10px 0px">
                 <button id="btn-one" class="btn" type="button" data-toggle="button" name="radius" value="2">2</button>
@@ -172,11 +198,13 @@
                     }
                     input.value = this.value;
                     this.className="btn active";
+                    post_to_url(index/update, this.value, "post");
                   });
                 }
+
               </script>
               <br>
-              <button type="submit" value="Submit" onclick="codeAddress()" class="btn">Submit</button>
+              <!-- <button type="submit" value="Submit" onclick="post_to_url(index/update, {'address':address,'radius':radius}, "post");" class="btn">Submit</button> -->
             </fieldset>
           </form>
         </div>
