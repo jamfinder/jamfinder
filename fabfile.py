@@ -1,4 +1,3 @@
-2
 from fabric.api import *
 from resourceprovider import settings
 
