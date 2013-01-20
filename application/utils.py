@@ -18,6 +18,7 @@ class Venue:
     self.zipcode = zipcode
     self.address = address
     self.state = state
+
   def __repr__(self):
     return "[venue: %s %s %s %s]" %(self.name, self.city, self.zipcode, self.state)
 
@@ -28,6 +29,7 @@ class Event:
     self.event_date = event_date
     self.venue = venue
     self.event_url = event_url
+
   def __repr__(self):
     return "%s %s %s %s %s" % (self.event_id, self.artists, self.event_date,
                                self.venue, self.event_url)
