@@ -1,7 +1,7 @@
 import json
 import logging
 import datetime, time
-import models
+#import models
 import utils
 import settings
 import urllib2, urllib
@@ -10,6 +10,7 @@ import datetime
 import cgi
 from flask import json
 from bs4 import BeautifulSoup
+import jsonpickle
 
 class Venue:
   def __init__(self, name, address, city, state, zipcode):
@@ -211,7 +212,6 @@ genres.update({'ambient': ['ambient']})
 genres.update({'jazz': ['jazz', 'free jazz', 'nu-jazz', 'nu jazz', 'swing']})
 genres.update({'classical': ['classical', 'classic']})
 
-if __name__ == '__main__':
   # print fetch_concert_info(19104)
   # client = soundcloud.Client(client_id=settings.SOUNDCLOUD_CONSUMER_KEY)
   # print get_users(client, '')
