@@ -200,11 +200,11 @@ def get_latlng(address):
   return (loc[unicode('lat')], loc[unicode('lng')])
 
 def get_concert_songs(zipcode, radius=50, start_date = datetime.date.today(),
-                      end_date = None, num_result = 1):
+                      end_date = None, num_result = 10):
   client = soundcloud.Client(client_id=settings.SOUNDCLOUD_CONSUMER_KEY)
   concerts = fetch_concert_info(zipcode, radius, start_date, end_date, num_result)
   print "#concerts ", len(concerts)
-  concert_results = []
+  concert_result = []
   for concert in concerts:
     songs = []
     for artist in concert.artists:
@@ -214,8 +214,9 @@ def get_concert_songs(zipcode, radius=50, start_date = datetime.date.today(),
       else:
         songs.extend(get_artist_songs(client, soundcloud_id))
     concert.songs = songs
-  len(concerts)
-  return jsonpickle.encode(concerts)
+    if len(songs) > 0:
+      concert_result.append(concert)
+  return jsonpickle.encode(concert_result)
 
 genres = {}
 genres.update({'house': ['house', 'tech house', 'deep house', 'progressive house', 'tech-house',

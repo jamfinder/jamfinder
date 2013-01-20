@@ -3,13 +3,17 @@ from flask.views import View
 from utils import get_concert_songs
 import settings, random, os
 from flask import Blueprint, request, redirect, render_template, url_for
+import json
+from flask import Markup
 
 zipcode = 19104
 
 @app.route('/')
 def index():
-    path = os.path.join(os.path.dirname(__file__), 'template/index.html')
-    return render_template(path, google_maps_api_key = settings.GOOGLE_MAPS_API_KEY, concerts = get_concert_songs(zipcode))
+    concerts = get_concert_songs(zipcode)
+    print type(concerts)
+    return render_template('index.html', google_maps_api_key = settings.GOOGLE_MAPS_API_KEY,
+                           concerts = Markup(concerts))
 
 # class UpdateView(View):
 #     def get_context(self, slug):
