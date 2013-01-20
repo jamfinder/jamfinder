@@ -200,7 +200,7 @@ def get_latlng(address):
   return (loc[unicode('lat')], loc[unicode('lng')])
 
 def get_concert_songs(zipcode, radius=50, start_date = datetime.date.today(),
-                      end_date = None, num_result = 10):
+                      end_date = None, num_result = 1):
   client = soundcloud.Client(client_id=settings.SOUNDCLOUD_CONSUMER_KEY)
   concerts = fetch_concert_info(zipcode, radius, start_date, end_date, num_result)
   print "#concerts ", len(concerts)

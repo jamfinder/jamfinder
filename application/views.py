@@ -7,14 +7,8 @@ from flask import Blueprint, request, redirect, render_template, url_for
 zipcode = 19104
 
 @app.route('/')
-@app.route('/index')
 def index():
-    template_values = {
-        'google_maps_api_key' : settings.GOOGLE_MAPS_API_KEY,
-        'random' : random.random(),
-        'concerts' : get_concert_songs(zipcode)
-    }
-    path = os.path.join(os.path.dirname(__file__), 'templates/index.html')
+    path = os.path.join(os.path.dirname(__file__), 'template/index.html')
     return render_template(path, google_maps_api_key = settings.GOOGLE_MAPS_API_KEY, concerts = get_concert_songs(zipcode))
 
 # class UpdateView(View):
