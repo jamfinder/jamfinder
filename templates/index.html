@@ -11,6 +11,7 @@
     <script type="text/javascript"
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAnbKbgharhiAidEImaBFCRSKMXyScxRNE&sensor=false">
     </script>
+
     <script type="text/javascript">
       
       function addMarker(lat, lng, map, concert){
@@ -20,12 +21,15 @@
             map: map
         });
         var infowindow = new google.maps.InfoWindow({
-          content: "<h2>{concert['artist']}</h2><h3>{concert['venue']}</h3>"
+          content: "<h2>{concert['artist']}</h2><h3>{concert['venue']}</h3><h4>soundcloud player</h4>"
         });
         google.maps.event.addListener(marker, 'click', function() {
           infowindow.open(map,marker);
         });
       };
+
+      var geocoder;
+      var map;
 
       function initialize() {
         var mapOptions = {
@@ -33,33 +37,48 @@
           zoom: 10,
           mapTypeId: google.maps.MapTypeId.ROADMAP
         };
-        var map = new google.maps.Map(document.getElementById("map_canvas"),
+        map = new google.maps.Map(document.getElementById("map_canvas"),
             mapOptions);
 
         addMarker(39.951673, -75.191287, map, 'blah');
         addMarker(39.851673, -75.241287, map, 'blah');
+
+        geocoder = new google.maps.Geocoder();
 
         // {% for concert in concerts %}
         //   addMarker({concert['lat']}, {concert['long']}, map, concert);
         // {% endfor %}
       };
 
-      
-      
+      function codeAddress() {
+        var address = document.getElementById('address').value;
+        geocoder.geocode( { 'address': address}, function(results, status) {
+          if (status == google.maps.GeocoderStatus.OK) {
+            map.setCenter(results[0].geometry.location);
+            // var marker = new google.maps.Marker({
+            //     map: map,
+            //     position: results[0].geometry.location
+            // });
+          } else {
+            alert('Geocode was not successful for the following reason: ' + status);
+          }
+        });
+      }
+
     </script>
   </head>
   <body onload="initialize()">
     <script src="js/bootstrap.min.js"></script>
       <div id="map_canvas" style="width:100%; height:100% "></div> 
         <div class="row-fluid">
-        <div class="span3" style="position:absolute; top:40px; right: 40px; background-color:white">
-          <div class="hero-unit .box-shadow" style="background-color:white;">
-          <form style="position:absolute; top:3px; left:5px">
+        <div class="span3" style="position:absolute; top:40px; right: 40px; background-color:white; outline:gray solid 1px;">
+          <div class="hero-unit .box-shadow" style="background-color:white; ">
+          <form action="" method="get" style="position:absolute; top:3px; left:5px">
             <fieldset>
               <legend>JamFinder</legend>
               <label>Location</label>
-              <input type="text" placeholder="Philadelphia, PA"><br>
-              <button type="submit" class="btn">Submit</button>
+              <input type="text" id="address" placeholder="Philadelphia, PA"><br>
+              <input type="submit" value="Submit" onclick="codeAddress()" class="btn">
             </fieldset>
           </form>
         </div>
