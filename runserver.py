@@ -1,8 +1,12 @@
-from application import app
+from application import app, models
 import os
 
 if app.config['DEBUG']:
     app.debug = True
+
+app.config.from_pyfile(os.path.join(app.root_path, 'config.py'))
+print 'creating db'
+models.db.create_all()
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.

@@ -1,5 +1,4 @@
 from fabric.api import *
-from resourceprovider import settings
 
 # the user to use for the remote commands
 env.user = settings.deployment["user"]

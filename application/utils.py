@@ -1,7 +1,7 @@
 import json
 import logging
 import datetime, time
-#import models
+from models import *
 import utils
 import settings
 import urllib2, urllib
@@ -13,44 +13,7 @@ from bs4 import BeautifulSoup
 import jsonpickle
 import operator
 from fuzzywuzzy import fuzz
-
-class Venue:
-  def __init__(self, name, lat, lng, zipcode):
-    self.name = name
-    self.lat = lat
-    self.lng = lng
-    self.zipcode = zipcode
-
-  def __repr__(self):
-    return "[venue: %s %s %s %s]" %(self.name, self.lat, self.lng, self.zipcode)
-
-class Event:
-  def __init__(self, event_id, artists, event_date, venue, event_url):
-    self.event_id = event_id
-    self.artists = artists
-    self.event_date = event_date
-    self.venue = venue
-    self.event_url = event_url
-
-  def __repr__(self):
-    return "%s %s %s %s %s" % (self.event_id, self.artists, self.event_date,
-                               self.venue, self.event_url)
-
-class Artist:
-  def __init__(self, artist_id, name, url):
-    self.artist_id = artist_id
-    self.name = name
-    self.url = url
-  def __repr__(self):
-    return "[Artist: %s %s %s]" % (self.artist_id, self.name, self.url)
-
-class Track:
-  def __init__(self, track_id, user_id, purchase_url, artwork_url, genre):
-    self.track_id = track_id
-    self.user_id = user_id
-    self.purchase_url = purchase_url
-    self.artwork_url = artwork_url
-    self.genre = genre
+import models
 
 def get_soup(url):
   try:
@@ -65,17 +28,24 @@ def parse_xml_response(content):
   for event in tree('event'):
     artists = []
     for artist in event('artists'):
-      artist_id = artist.find('artist_id').text
-      artists.append(Artist(artist_id, artist.find('artist_name').text, None))
-                            #get_official_website(artist_id)))
+      artist_id = int(artist.find('artist_id').text)
+      artist = Artist.query.filter_by(jambase_artist_id = str(artist_id)).first()
+      if not artist:
+        artist = Artist(artist_id, artist.find('artist_name').text, None)
+        artists.append(artist)
+        db.session.add(artist)
     venue = event.find('venue')
-    venue_name = venue.find('venue_name').text
-    venue_city = venue.find('venue_city').text
-    venue_state = venue.find('venue_state').text
-    venue_zip = venue.find('venue_zip').text
-    venue_address = get_address(event.find('event_id').text)
-    (lat, lng) = get_latlng(venue_address)
-    venue_obj = Venue(venue_name, lat, lng, venue_zip)
+    venue_id = int(venue.find('venue_id').text)
+    venue = Venue.query.filter_by(jambase_venue_id=venue_id).first()
+    if not venue:
+      venue_name = venue.find('venue_name').text
+      venue_city = venue.find('venue_city').text
+      venue_state = venue.find('venue_state').text
+      venue_zip = venue.find('venue_zip').text
+      venue_address = get_address(event.find('event_id').text)
+      (lat, lng) = get_latlng(venue_address)
+      venue_obj = Venue(venue_id, venue_name, lat, lng, venue_city,
+                        venue_address, venue_state, venue_zip)
     events.append(Event(event.find('event_id').text,
                         artists, event.find('event_date').text,
                           venue_obj, event.find('event_url').text))
@@ -97,7 +67,6 @@ def open_remote_api(query, api):
     api_url = settings.JAMBASE_API_URL
     api_name = 'Jambase API'
   query = api_url + query
-  print query
   logging.info("Requesting %s with uri: %s" % (api_name, query))
   i = 0
   while True:
@@ -119,6 +88,7 @@ def open_remote_api(query, api):
     return parse_xml_response(result)
   else:
     return json.loads(result)
+
 def canonical_url(u):
   u = u.lower()
   if u.startswith("http://"):
@@ -133,7 +103,6 @@ def get_official_website(jambase_artist_id):
   url = settings.JAMBASE_ARTIST_URL + 'ArtistID=%s' %jambase_artist_id
   result = get_soup(url).find_all("a", text='Official Website')
   if len(result) > 0 :
-    print result[0]['href']
     return canonical_url(result[0]['href'])
   else:
     return None
@@ -148,7 +117,6 @@ def get_address(jambase_event_id):
 
 def get_soundcloud_id(client, artist):
   artists = client.get('/users', q=artist.name)
-  print artist.name, len(artists)
   if len(artists) == 0:
     return None
   artist_fuzzs = [(x, fuzz.token_set_ratio(artist.name,
@@ -195,15 +163,51 @@ def get_songs(client, artist):
 def get_latlng(address):
   query_string='&%s' % urllib.urlencode({'address':address, 'sensor':'true'})
   response = open_remote_api(query_string, 'geocode')
-  print type(response)
   loc = response[unicode('results')][0][unicode('geometry')][unicode('location')]
   return (loc[unicode('lat')], loc[unicode('lng')])
 
+def deg2rad(deg):
+  return deg * (math.pi/180)
+
+#gives distance in miles
+def get_distance_lat_lon(lat1, lon1, lat2, lon2):
+  R = 6371 # Radius of the earth in km
+  dLat = deg2rad(lat2-lat1)
+  dLon = deg2rad(lon2-lon1)
+  a = (math.sin(dLat/2) * math.sin(dLat/2) +
+  math.cos(deg2rad(lat1)) * math.cos(deg2rad(lat2)) *
+  math.sin(dLon/2) * math.sin(dLon/2))
+  c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+  d = R * c
+  return d * 0.621371 #convert back to miles
+
+def get_zipcode_from_address(address):
+  query_string='&%s' % urllib.urlencode({'address':address, 'sensor':'true'})
+  response = open_remote_api(query_string, 'geocode')
+  postal_obj = response[unicode('results')][0][unicode('address_components')][-1]
+  if postal_obj[unicode('types')][0] == 'postal_code':
+    return postal_obj[unicode('long_name')]
+  else:
+    loc = response[unicode('results')][0][unicode('geometry')][unicode('location')]
+    query_string='&%s' % urllib.urlencode({'latlng':'%s,%s'
+                                           %((loc[unicode('lat')], loc[unicode('lng')])),
+                                           'sensor':'true'})
+    response = open_remote_api(query_string, 'geocode')
+    postal_obj = response[unicode('results')][0][unicode('address_components')][-1]
+    if postal_obj['types'][0] == 'postal_code':
+      return postal_obj[unicode('long_name')]
+
 def get_concert_songs(zipcode, radius=100, start_date = datetime.date.today(),
                       end_date = None, num_result = 40):
+  radius = radius or 100
+  start_date = start_date or datetime.date.today()
+  now = datetime.datetime.now()
   client = soundcloud.Client(client_id=settings.SOUNDCLOUD_CONSUMER_KEY)
   concerts = fetch_concert_info(zipcode, radius, start_date, end_date, num_result)
-  print "#concerts ", len(concerts)
+  for concert in concerts:
+    concert.zipcode = zipcode
+    db.session.add(concert)
+  db.session.commit()
   concert_result = []
   for concert in concerts:
     songs = []
@@ -218,26 +222,10 @@ def get_concert_songs(zipcode, radius=100, start_date = datetime.date.today(),
       concert_result.append(concert)
   return jsonpickle.encode(concert_result)
 
-genres = {}
-genres.update({'house': ['house', 'tech house', 'deep house', 'progressive house', 'tech-house',
-                         'electro house', 'techhouse', 'minimal house', 'minimal-house',
-                         'funky house', 'dance']})
-genres.update({'techno': ['techno', 'techno minimal', 'minimal techno', 'minimal-techno']})
-genres.update({'dubstep': ['dubstep', 'dub step']})
-genres.update({'hiphop': ['hip hop', 'hip-hop', 'hiphop', 'rap', 'r&b', 'rnb', 'r\'n\'b']})
-genres.update({'electronic': ['electronic', 'electro', 'electronica', 'minimal', 'idm']})
-genres.update({'drumandbass': ['drum & bass', 'drum and bass', 'drum n bass', 'dnb', 'drum\'n\'bass', 'breakbeat', 'drum&bass', 'breaks']})
-genres.update({'trance': ['trance', 'progressive_trance', 'progessive trance', 'psy trance', 'goa']})
-genres.update({'rock': ['rock']})
-genres.update({'indie': ['indie', 'alternative', 'acoustic']})
-genres.update({'pop': ['pop']})
-genres.update({'ambient': ['ambient']})
-genres.update({'jazz': ['jazz', 'free jazz', 'nu-jazz', 'nu jazz', 'swing']})
-genres.update({'classical': ['classical', 'classic']})
-
 if __name__=="__main__":
   # print fetch_concert_info(19104)
   # client = soundcloud.Client(client_id=settings.SOUNDCLOUD_CONSUMER_KEY)
   # print get_users(client, '')
   # print get_location('3900 chestnut street philadelphia')
-  print get_concert_songs(10004)
+  print get_zipcode_from_address("san francisco ca")
+  #print get_concert_songs(10004)
