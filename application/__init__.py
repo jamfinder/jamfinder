@@ -1,6 +1,7 @@
 import json, os, re, sys
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
+
 __all__ = ['create_app','db']
 
 # A list of app modules and their prefixes. Each APP entry must contain a
@@ -17,7 +18,12 @@ MODULES = [
 
 # Create the Skeleton app
 app = Flask(__name__, static_path='/static')
-from application import views, models
-# DB class
-app.config['SQLALCHEMY_DATABASE_URI'] = = os.environ['DATABASE_URL']
 db = SQLAlchemy(app)
+app.config.from_object('config')
+
+@app.errorhandler(404)
+def not_found(error):
+    return render_template('404.html'), 404
+
+# DB class
+app.config['SQLALCHEMY_DATABASE_URI'] =  os.environ['DATABASE_URL']

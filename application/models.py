@@ -2,6 +2,7 @@
 from sqlalchemy import (Table, Column, Integer, String,
                         DateTime, Float, ForeignKey)
 import config
+from application import db
 
 class Artist(db.Model):
     __tablename__ = 'Artist'
@@ -17,7 +18,6 @@ class Artist(db.Model):
         self.name = name
         self.url = url
         self.jambase_artist_id
-
 
     def __repr__(self):
         return "[Artist: %s %s %s]" % (self.sc_user_id, self.name, self.url)
