@@ -9,6 +9,7 @@ from sqlalchemy.schema import (
     ForeignKeyConstraint,
     DropConstraint,
 )
+import application.config as config
 
 db_engine = None
 
@@ -26,13 +27,16 @@ Base = declarative_base()
 
 Base.query = db_session.query_property()
 
-
-
-
 def init_db():
     import myapp.models
     Base.metadata.create_all(db_engine)
 
+def DropAllTables():
+    import sqlalchemy
+    engine = sqlalchemy.create_engine(config.SQLALCHEMY_DATABASE_URI)
+    meta = sqlalchemy.MetaData(engine)
+    meta.reflect()
+    meta.drop_all()
 
 def drop_db():
     """It is a workaround for dropping all tables in sqlalchemy.

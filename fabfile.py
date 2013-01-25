@@ -1,10 +1,15 @@
 from fabric.api import *
 
 # the user to use for the remote commands
-env.user = settings.deployment["user"]
-env.password = settings.deployment["password"]
+#env.user = settings.deployment["user"]
+#env.password = settings.deployment["password"]
 # the servers where the commands are executed
-env.hosts = [settings.deployment["host"]]
+#env.hosts = [settings.deployment["host"]]
+
+def create_db():
+    from application import db
+    db.create_all()
+    print 'created db'
 
 def _reload():
     sudo("service uwsgi restart")
